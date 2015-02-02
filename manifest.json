@@ -6,10 +6,11 @@
     "version": "1.0",
 
     "browser_action": {
-        "default_icon": "sun.png",
+        "default_icon": "icons/01.png",
         "default_popup": "popup.html"
     },
 
     "permissions": [
+        "storage"
     ]
 }
