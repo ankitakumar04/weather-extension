@@ -209,62 +209,34 @@
         return true;
     };
 
-    var getData = function(){
-        var weatherData = [null, null, null];
+    // gets data and renders if arr is full
+    var getData = function(key, url, arr, ind){
 
-        // get current data
-        chrome.storage.local.get('currentWeatherData', function(data){
-            if(data.currentWeatherData){
-                weatherData[0] = JSON.parse(data.currentWeatherData);
+        chrome.storage.local.get(key, function(data){
+            if(data[key]){
+                arr[ind] = JSON.parse(data[key]);
+                if(arrayAllTrue(arr))
+                    parseData(arr);
             }else{
-                ajax('http://api.openweathermap.org/data/2.5/weather?q=waterloo,ca',
+                ajax(url,
                     'GET',
                     function(r){
-                        chrome.storage.local.set({currentWeatherData: r.response});
-                        weatherData[0] = JSON.parse(currentWeatherData);
+                        chrome.storage.local.set({key: r.response});
+                        arr[ind] = JSON.parse(r.response);
+                        console.log(arr);
+                        if(arrayAllTrue(arr))
+                            parseData(arr);
                     },
                     function(){console.log('error');}
                 );
             }
-            if(arrayAllTrue(weatherData))
-                parseData(weatherData);
-        });
-
-        chrome.storage.local.get('todayWeatherData', function(data){
-            if(data.todayWeatherData){
-                weatherData[1] = JSON.parse(data.todayWeatherData);
-            }else{
-                ajax('http://api.openweathermap.org/data/2.5/forecast?q=waterloo,ca',
-                    'GET',
-                    function(r){
-                        chrome.storage.local.set({todayWeatherData: r.response});
-                        weatherData[1] = JSON.parse(r.response);
-                    },
-                    function(){console.log('error');}
-                );
-            }
-            if(arrayAllTrue(weatherData))
-                parseData(weatherData);
-        });
-
-        chrome.storage.local.get('forecastWeatherData', function(data){
-            if(data.forecastWeatherData){
-                weatherData[2] = JSON.parse(data.forecastWeatherData);
-            }else{
-                ajax('http://api.openweathermap.org/data/2.5/forecast/daily?q=waterloo,ca',
-                    'GET',
-                    function(r){
-                        chrome.storage.local.set({forecastWeatherData: r.response});
-                        weatherData[2] = JSON.parse(r.response);
-                    },
-                    function(){console.log('error');}
-                );
-            }
-            if(arrayAllTrue(weatherData))
-                parseData(weatherData);
         });
     };
-    getData();
+
+    var weatherData = [null, null, null];
+    getData('currentWeatherData', 'http://api.openweathermap.org/data/2.5/weather?q=waterloo,ca', weatherData, 0);
+    getData('todayWeatherData', 'http://api.openweathermap.org/data/2.5/forecast?q=waterloo,ca', weatherData, 1);
+    getData('forecastWeatherData', 'http://api.openweathermap.org/data/2.5/forecast/daily?q=waterloo,ca', weatherData, 2);
 
     // makes sure all calls are made. ind is the index
     // in which to store the data from the response
