@@ -149,7 +149,7 @@
 
     // used to parse the data
     var parseData = function(data){
-        console.log(data);
+        //console.log(data);
         var weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday',
                         'Thursday', 'Friday', 'Saturday'];
         var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
@@ -211,19 +211,27 @@
 
     // gets data and renders if arr is full
     var getData = function(key, url, arr, ind){
-
         chrome.storage.local.get(key, function(data){
+
             if(data[key]){
                 arr[ind] = JSON.parse(data[key]);
+                console.log(arr[ind].setAt);
                 if(arrayAllTrue(arr))
                     parseData(arr);
             }else{
                 ajax(url,
                     'GET',
                     function(r){
-                        chrome.storage.local.set({key: r.response});
-                        arr[ind] = JSON.parse(r.response);
-                        console.log(arr);
+                        console.log('ajaxed');
+                        var data = JSON.parse(r.response);
+                        arr[ind] = data;
+
+                        // cache with time of cache
+                        var toStore = {};
+                        data.setAt = Date.now();
+                        toStore[key] = JSON.stringify(data);
+                        chrome.storage.local.set(toStore);
+
                         if(arrayAllTrue(arr))
                             parseData(arr);
                     },
