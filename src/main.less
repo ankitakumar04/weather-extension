@@ -58,6 +58,7 @@ div.menu{
 div.current{
     position: relative;
     padding-left: 25px;
+    margin-top: 10px;
     margin-bottom: 20px;
     clear: both;
 
@@ -89,7 +90,6 @@ div.today{
     padding-left: 30px;
     padding-right: 30px;
 
-    // should probably set size
     .period{
         float: left;
         text-align: center;
@@ -105,7 +105,7 @@ div.today{
             font-size: @font-default*0.666;
         }
         img{
-            margin: 0 auto;
+            margin: 3px auto;
             height: 22px;
         }
         .precip{
@@ -115,22 +115,25 @@ div.today{
 }
 
 div.forecast{
-    margin-top: 10px;
-    padding-left: 10px;
+    margin-top: 20px;
 
     .day{
         .Clearfix();
-        margin-bottom: 30px;
-        padding-left: 10px;
+        position: relative;
+        margin-bottom: 20px;
         padding-right: 10px;
         &:last-child{
             margin-bottom: 10px;
         }
 
-        img{
+        .img-wrapper{
             float: left;
-            height: 40px;
-            margin-right: 20px;
+            width: 90px;
+            margin-right: 10px;
+            text-align: center;
+            img{
+                height: 40px;
+            }
         }
         div.weather{
             float: left;

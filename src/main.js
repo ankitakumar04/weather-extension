@@ -89,9 +89,11 @@
                 '<p class="weekday">' + this.attrs.weekday + '</p>' +
                 '<p class="month">' + this.attrs.month + '</p>'
             );
+            var imgWrapper = createElem('div', {class: 'img-wrapper'});
+            imgWrapper.appendChild(createElem('img', {src: this.attrs.img, alt: 'icon'}));
 
             var day = createElem('div', {class: 'day'});
-            day.appendChild(createElem('img', {src: this.attrs.img, alt: 'icon'}));
+            day.appendChild(imgWrapper);
             day.appendChild(weather);
             day.appendChild(date);
             return day;
@@ -245,9 +247,10 @@
         });
     };
 
+    var LOCATION = 'waterloo,ca';
     var weatherData = [null, null, null];
-    getData('currentWeatherData', 'http://api.openweathermap.org/data/2.5/weather?q=waterloo,ca', weatherData, 0);
-    getData('todayWeatherData', 'http://api.openweathermap.org/data/2.5/forecast?q=waterloo,ca', weatherData, 1);
-    getData('forecastWeatherData', 'http://api.openweathermap.org/data/2.5/forecast/daily?q=waterloo,ca', weatherData, 2);
+    getData('currentWeatherData', 'http://api.openweathermap.org/data/2.5/weather?q=' + LOCATION, weatherData, 0);
+    getData('todayWeatherData', 'http://api.openweathermap.org/data/2.5/forecast?q=' + LOCATION, weatherData, 1);
+    getData('forecastWeatherData', 'http://api.openweathermap.org/data/2.5/forecast/daily?q=' + LOCATION, weatherData, 2);
 
 })();
