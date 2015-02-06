@@ -230,7 +230,7 @@ var components = (function(){
                 date = new Date(data[2].list[i].dt*1000); // ms
                 forecastData.push({
                     img: 'icons/' + data[2].list[i].weather[0].icon.substr(0, 2) + '.png',
-                    temp: convertTemp(data[2].list[i].temp.max),
+                    temp: convertTemp(data[2].list[i].temp.max, units),
                     desc: data[2].list[i].weather[0].main,
                     weekday: weekdays[date.getDay()],
                     month: months[date.getMonth()] + ' ' + date.getDate()
@@ -285,13 +285,17 @@ var components = (function(){
         getData('todayWeatherData', 'http://api.openweathermap.org/data/2.5/forecast?q=' + LOCATION, weatherData, 1);
         getData('forecastWeatherData', 'http://api.openweathermap.org/data/2.5/forecast/daily?q=' + LOCATION, weatherData, 2);
 
-        // set the units button
-        var unitsBtns = document.getElementsByClassName('units-btn');
-        var unitBtnsLength = unitsBtns.length;
-        for(var i=0; i < unitBtnsLength; i++){
-            if(unitsBtns[i].dataset.units == units) unitsBtns[i].setAttribute('class', 'units-btn active');
-            else unitsBtns[i].setAttribute('class', 'units-btn');
-        }
+        chrome.storage.sync.get('units', function(result){
+
+            var units = result.units || 'metric';
+            // set the units button
+            var unitsBtns = document.getElementsByClassName('units-btn');
+            var unitBtnsLength = unitsBtns.length;
+            for(var i=0; i < unitBtnsLength; i++){
+                if(unitsBtns[i].dataset.units == units) unitsBtns[i].setAttribute('class', 'units-btn active');
+                else unitsBtns[i].setAttribute('class', 'units-btn');
+            }
+        });
     };
     init();
 
