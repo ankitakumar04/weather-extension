@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="64px" height="107px" viewBox="0 0 64 107" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+    <!-- Generator: Sketch 3.2.2 (9983) - http://www.bohemiancoding.com/sketch -->
+    <title>Rain</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <filter x="-50%" y="-50%" width="200%" height="200%" filterUnits="objectBoundingBox" id="filter-1">
+            <feOffset dx="0" dy="2" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="2" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.35 0" in="shadowBlurOuter1" type="matrix" result="shadowMatrixOuter1"></feColorMatrix>
+            <feMerge>
+                <feMergeNode in="shadowMatrixOuter1"></feMergeNode>
+                <feMergeNode in="SourceGraphic"></feMergeNode>
+            </feMerge>
+        </filter>
+    </defs>
+    <g id="Icons" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" sketch:type="MSPage">
+        <path d="M59.1756516,66.3740383 C59.714192,68.49392 60,70.7113991 60,72.9941395 C60,88.1123111 47.463973,100.368011 32,100.368011 C16.536027,100.368011 4,88.1123111 4,72.9941395 C4,67.8797858 5.43463985,63.0930173 7.93194682,58.9974887 C31.1839481,16.7580055 20.1703031,0.368010781 20.1703031,0.368010781 C20.1703031,0.368010781 55.4442542,32.5103921 59.1756516,66.3740383 Z" id="Rain" fill="#DFECE9" filter="url(#filter-1)" sketch:type="MSShapeGroup"></path>
+    </g>
+</svg>

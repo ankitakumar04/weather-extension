@@ -142,16 +142,18 @@
         var forecast = new Forecast({days: forecastData});
 
         // display data
-        document.body.appendChild(current.render());
-        document.body.appendChild(createElem('hr'));
-        document.body.appendChild(today.render());
-        document.body.appendChild(createElem('hr'));
-        document.body.appendChild(forecast.render());
+        var main = document.getElementById('main');
+        main.innerHTML = '';
+        main.appendChild(current.render());
+        main.appendChild(createElem('hr'));
+        main.appendChild(today.render());
+        main.appendChild(createElem('hr'));
+        main.appendChild(forecast.render());
     };
 
     // used to parse the data
     var parseData = function(data){
-        //console.log(data);
+        console.log(data);
         var weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday',
                         'Thursday', 'Friday', 'Saturday'];
         var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
@@ -159,7 +161,7 @@
 
         var currentData = {
             img: 'icons/' + data[0].weather[0].icon.substr(0, 2) + '.png',
-            temp: Math.round(data[0].main.temp - 273.15),
+            temp: Math.round(data[0].main.temp),
             desc: data[0].weather[0].main
         };
 
@@ -176,14 +178,14 @@
             // get precipitation
             var precip = 0;
             if(data[1].list[i].rain)
-                precip = data[1].list[i].rain['3h'];
+                precip = +data[1].list[i].rain['3h'].toFixed(2);
             else if(data[1].list[i].snow)
-                precip = data[1].list[i].snow['3h'];
+                precip = +data[1].list[i].snow['3h'].toFixed(2);
 
             // store data in array
             todayData.push({
                 img: 'icons/' + data[1].list[i].weather[0].icon.substr(0, 2) + '.png',
-                temp: Math.round(data[1].list[i].main.temp - 273.15),
+                temp: Math.round(data[1].list[i].main.temp),
                 precip: precip,
                 time: hours + ':' + minutes
             });
@@ -194,7 +196,7 @@
             date = new Date(data[2].list[i].dt*1000); // ms
             forecastData.push({
                 img: 'icons/' + data[2].list[i].weather[0].icon.substr(0, 2) + '.png',
-                temp: Math.round(data[2].list[i].temp.max - 273.15),
+                temp: Math.round(data[2].list[i].temp.max),
                 desc: data[2].list[i].weather[0].main,
                 weekday: weekdays[date.getDay()],
                 month: months[date.getMonth()] + ' ' + date.getDate()
@@ -218,13 +220,14 @@
     // gets data and renders if arr is full
     var getData = function(key, url, arr, ind){
         chrome.storage.local.get(key, function(data){
-
             if(data[key] && !cacheExpired( JSON.parse(data[key]).setAt )){
                 console.log('cache');
                 arr[ind] = JSON.parse(data[key]);
                 if(arrayAllTrue(arr))
                     parseData(arr);
             }else{
+                var spinner = document.getElementById('spinner');
+                spinner.style.display = 'block';
                 ajax(url,
                     'GET',
                     function(r){
@@ -238,8 +241,10 @@
                         toStore[key] = JSON.stringify(data);
                         chrome.storage.local.set(toStore);
 
-                        if(arrayAllTrue(arr))
+                        if(arrayAllTrue(arr)){
                             parseData(arr);
+                            spinner.style.display = 'none';
+                        }
                     },
                     function(){console.log('error');}
                 );
@@ -248,9 +253,54 @@
     };
 
     var LOCATION = 'waterloo,ca';
-    var weatherData = [null, null, null];
-    getData('currentWeatherData', 'http://api.openweathermap.org/data/2.5/weather?q=' + LOCATION, weatherData, 0);
-    getData('todayWeatherData', 'http://api.openweathermap.org/data/2.5/forecast?q=' + LOCATION, weatherData, 1);
-    getData('forecastWeatherData', 'http://api.openweathermap.org/data/2.5/forecast/daily?q=' + LOCATION, weatherData, 2);
+    var unitsBtns = document.getElementsByClassName('units-btn');
+
+    var init = function(){
+        var weatherData = [null, null, null];
+        chrome.storage.sync.get('units', function(result){
+            var units = result.units || 'metric';
+            getData('currentWeatherData', 'http://api.openweathermap.org/data/2.5/weather?q=' + LOCATION + '&units=' + units, weatherData, 0);
+            getData('todayWeatherData', 'http://api.openweathermap.org/data/2.5/forecast?q=' + LOCATION + '&units=' + units, weatherData, 1);
+            getData('forecastWeatherData', 'http://api.openweathermap.org/data/2.5/forecast/daily?q=' + LOCATION + '&units=' + units, weatherData, 2);
+
+            // set the units button
+            var unitBtnsLength = unitsBtns.length;
+            for(var i=0; i < unitBtnsLength; i++){
+                if(unitsBtns[i].dataset.units == units) unitsBtns[i].setAttribute('class', 'units-btn active');
+                else unitsBtns[i].setAttribute('class', 'units-btn');
+            }
+        });
+    };
+    init();
+
+    // menu interactions
+    var sidebar = document.getElementById('sidebar');
+    // toggle the sidebar menu
+    var toggleSidebar = function(){
+        if(sidebar.style.display === 'block') sidebar.style.display = 'none';
+        else sidebar.style.display = 'block';
+    };
+    // refresh data
+    var refresh = function(){
+        chrome.storage.local.clear(); // clear cache
+        init(); // get data and re-render
+        //toggleSidebar();
+    };
+
+    document.getElementById('menu-icon').onclick = toggleSidebar;
+    document.getElementById('refresh').onclick = refresh;
+
+    // change units
+    Array.prototype.forEach.call(unitsBtns, function(elem, ind, arr){
+        elem.onclick = function(e){
+            chrome.storage.sync.set({'units': e.target.dataset.units});
+            var arrLength = arr.length;
+            for(var i=0; i < arrLength; i++)
+                arr[i].setAttribute('class', 'units-btn');
+            arr[ind].setAttribute('class', 'units-btn active');
+            refresh();
+        };
+    });
 
 })();
+

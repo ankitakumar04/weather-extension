@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="158px" height="108px" viewBox="0 0 158 108" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+    <!-- Generator: Sketch 3.2.2 (9983) - http://www.bohemiancoding.com/sketch -->
+    <title>Cloud</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <filter x="-50%" y="-50%" width="200%" height="200%" filterUnits="objectBoundingBox" id="filter-1">
+            <feOffset dx="0" dy="2" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="2" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.35 0" in="shadowBlurOuter1" type="matrix" result="shadowMatrixOuter1"></feColorMatrix>
+            <feMerge>
+                <feMergeNode in="shadowMatrixOuter1"></feMergeNode>
+                <feMergeNode in="SourceGraphic"></feMergeNode>
+            </feMerge>
+        </filter>
+    </defs>
+    <g id="Icons" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" sketch:type="MSPage">
+        <path d="M34.9160305,101.998639 C17.8153007,101.835951 4,87.1107127 4,68.969697 C4,50.7275643 17.9697411,35.9393939 35.2022901,35.9393939 C36.4227795,35.9393939 37.6269022,36.0135734 38.8108544,36.1579055 C43.0112295,16.598969 59.538213,2 79.2862595,2 C99.4319985,2 116.225634,17.1928869 120.000359,37.3455135 L120.000359,37.3455135 C121.106993,37.217313 122.231352,37.1515152 123.370229,37.1515152 C140.286584,37.1515152 154,51.668343 154,69.5757576 C154,87.4831722 140.286584,102 123.370229,102 C123.274706,102 123.179286,101.999537 123.083969,101.998613 L34.9160305,102 Z" id="Cloud" fill="#ECECDF" filter="url(#filter-1)" sketch:type="MSShapeGroup"></path>
+    </g>
+</svg>

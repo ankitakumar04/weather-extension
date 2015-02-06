@@ -2,6 +2,8 @@
 html{box-sizing: border-box;}
 *, *:before, *:after{box-sizing: inherit;}
 
+@import "spinner.less";
+
 @primary: #6a6a6a;
 @lightGray: #d8d8d8;
 @font-default: 18px;
@@ -81,6 +83,7 @@ div.menu{
     }
 
     .sidebar{
+        display: none; // toggled by js
         z-index: 1;
         position: absolute;
         top: 0;
@@ -94,6 +97,7 @@ div.menu{
         padding-right: 30px;
 
         .options{
+            .Clearfix();
             & > button{
                 display: inline;
                 font-size: @font-default*0.777;
@@ -106,6 +110,7 @@ div.menu{
                 &:first-child{
                     border-top-left-radius: 8px;
                     border-bottom-left-radius: 8px;
+                    border-right: none;
                 }
                 &:nth-child(2){
                     border-top-right-radius: 8px;
@@ -115,14 +120,75 @@ div.menu{
                     background-color: lighten(@lightGray, 11%);
                 }
             }
-            & > span{
+
+            #refresh{
                 float: right;
                 font-size: @font-default*0.777;
-                margin-top: 7px;
                 text-decoration: underline;
+                border: none;
                 &:hover{cursor: pointer;}
             }
         }
+
+        .location-search{
+            h3{
+                font-size: @font-default*0.777;
+                margin-top: 20px;
+                margin-bottom: 10px;
+            }
+            .location-input{
+                float: left;
+                width: 155px;
+                border: 1px solid @lightGray;
+                border-top-left-radius: 8px;
+                border-bottom-left-radius: 8px;
+                box-shadow: none;
+                padding: 8px;
+                font-size: @font-default*0.777;
+                margin-bottom: 10px;
+            }
+            .search{
+                float: left;
+                width: 35px;
+                border: 1px solid @lightGray;
+                border-top-right-radius: 8px;
+                border-bottom-right-radius: 8px;
+                border-left: none;
+                background-color: #fff;
+                padding: 8px;
+                font-size: @font-default*0.777;
+            }
+            .instructions{
+                clear: both;
+                font-size: @font-default*0.555;
+                text-align: center;
+            }
+        }
+
+        .locations{
+            .location{
+                .Clearfix;
+                font-size: @font-default*0.777;
+                border-bottom: 1px solid @primary;
+                padding: 15px 0;
+                span:first-child{
+                    float: left;
+                    margin-left: 4%;
+                    width: 56%;
+                    &:hover{
+                        text-decoration: underline;
+                        cursor: pointer;
+                    }
+                }
+                span:last-child{
+                    float: right;
+                    margin-right: 4%;
+                    width: 36%;
+                    text-align: right;
+                }
+            }
+        }
+
     }
 }
 
@@ -155,8 +221,7 @@ div.current{
 
 div.today{
     .Clearfix();
-    margin-top: 10px;
-    margin-bottom: 10px;
+    margin: 10px auto;
     width: 280px;
     padding-left: 30px;
     padding-right: 30px;
