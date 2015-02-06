@@ -286,21 +286,20 @@ var components = (function(){
         init(); // get data and re-render
         //toggleSidebar();
     };
-    // change the units to the data attr on the e.target
-    var changeUnits = function(e){
-        chrome.storage.sync.set({'units': e.target.dataset.units});
-        var arrLength = arr.length;
-        for(var i=0; i < arrLength; i++)
-            arr[i].setAttribute('class', 'units-btn');
-        arr[ind].setAttribute('class', 'units-btn active');
-        refresh();
-    };
 
     document.getElementById('menu-icon').onclick = toggleSidebar;
     document.getElementById('refresh').onclick = refresh;
+    // change the units to the data attr on the e.target
     var unitsBtns = document.getElementsByClassName('units-btn');
     Array.prototype.forEach.call(unitsBtns, function(elem, ind, arr){
-        elem.onclick = changeUnits(e);
+        elem.onclick = function(e){
+            chrome.storage.sync.set({'units': e.target.dataset.units});
+            var arrLength = arr.length;
+            for(var i=0; i < arrLength; i++)
+                arr[i].setAttribute('class', 'units-btn');
+            arr[ind].setAttribute('class', 'units-btn active');
+            refresh();
+        };
     });
 
     var search = function(loc){
