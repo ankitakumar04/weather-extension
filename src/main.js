@@ -1,4 +1,4 @@
-(function(){
+var components = (function(){
 
     // creates a dom element with the attributes specified
     // on the attributes object and the given innerHTML
@@ -9,25 +9,6 @@
         }
         elem.innerHTML = innerHTML || null;
         return elem;
-    };
-
-    var ajax = function(url, method, success, error){
-        var r = new XMLHttpRequest();
-        r.open(method, url, true);
-
-        r.onload = function(){
-            if(this.status >= 200 && this.status < 400){
-                success(this); // success!
-            }else{
-                error(this);// reached server but error
-            }
-        };
-
-        r.onerror = function(){
-            error(this);// connection error of some sort
-        };
-
-        r.send();
     };
 
     var Current = function(attrs){
@@ -116,38 +97,68 @@
         };
     };
 
-    /*
-    var todayData = [
-        {time: '10:00', img: 'sun.png', temp: '15', precip: 0},
-        {time: '13:00', img: 'sun.png', temp: '16', precip: 0},
-        {time: '16:00', img: 'sun.png', temp: '19', precip: 0},
-        {time: '19:00', img: 'sun.png', temp: '14', precip: 0},
-        {time: '21:00', img: 'sun.png', temp: '11', precip: 0},
-    ];
-    */
 
-    /*
-    var forecastData = [
-        {img: 'sun.png', temp: '14', desc: 'Sunny', weekday: 'Monday', month: 'January 19'},
-        {img: 'sun.png', temp: '18', desc: 'Sunny', weekday: 'Monday', month: 'January 19'},
-        {img: 'sun.png', temp: '12', desc: 'Sunny', weekday: 'Monday', month: 'January 19'},
-        {img: 'sun.png', temp: '9', desc: 'Sunny', weekday: 'Monday', month: 'January 19'},
-        {img: 'sun.png', temp: '13', desc: 'Sunny', weekday: 'Monday', month: 'January 19'}
-    ];
-    */
+    return{
+        Current: Current,
+        Period: Period,
+        Today: Today,
+        Day: Day,
+        Forecast: Forecast
+    };
+
+})();
+
+(function(){
+
+    // makes an ajax call to url with method and runs appropriate callback
+    var ajax = function(url, method, success, error){
+        var r = new XMLHttpRequest();
+        r.open(method, url, true);
+
+        r.onload = function(){
+            if(this.status >= 200 && this.status < 400){
+                success(this); // success!
+            }else{
+                error(this);// reached server but error
+            }
+        };
+
+        r.onerror = function(){
+            error(this);// connection error of some sort
+        };
+
+        r.send();
+    };
+
+    // checks whether all elements in array arr are true
+    var arrayAllTrue = function(arr){
+        var arrLength = arr.length;
+        for(var i=0; i < arrLength; i++)
+            if(!arr[i]) return false;
+        return true;
+    };
+
+    // checks whether the cache is older than EXPIRY_TIME
+    var cacheExpired = function(setAt){
+        var EXPIRY_TIME = 30 * (60 * 1000); // min to milliseconds
+        return (Date.now() - setAt) > EXPIRY_TIME;
+    };
+
+    //** DATA **//
+    // flow goes from init -> getData -> parseData -> renderData
 
     var renderData = function(currentData, todayData, forecastData){
-        var current = new Current(currentData);
-        var today = new Today({today: todayData});
-        var forecast = new Forecast({days: forecastData});
+        var current = new components.Current(currentData);
+        var today = new components.Today({today: todayData});
+        var forecast = new components.Forecast({days: forecastData});
 
         // display data
         var main = document.getElementById('main');
         main.innerHTML = '';
         main.appendChild(current.render());
-        main.appendChild(createElem('hr'));
+        main.appendChild(document.createElement('hr'));
         main.appendChild(today.render());
-        main.appendChild(createElem('hr'));
+        main.appendChild(document.createElement('hr'));
         main.appendChild(forecast.render());
     };
 
@@ -206,17 +217,6 @@
         renderData(currentData, todayData, forecastData);
     };
 
-    var arrayAllTrue = function(arr){
-        var arrLength = arr.length;
-        for(var i=0; i < arrLength; i++)
-            if(!arr[i]) return false;
-        return true;
-    };
-    var cacheExpired = function(setAt){
-        var EXPIRY_TIME = 30 * (60 * 1000); // min to milliseconds
-        return (Date.now() - setAt) > EXPIRY_TIME;
-    };
-
     // gets data and renders if arr is full
     var getData = function(key, url, arr, ind){
         chrome.storage.local.get(key, function(data){
@@ -253,7 +253,6 @@
     };
 
     var LOCATION = 'waterloo,ca';
-    var unitsBtns = document.getElementsByClassName('units-btn');
 
     var init = function(){
         var weatherData = [null, null, null];
@@ -264,6 +263,7 @@
             getData('forecastWeatherData', 'http://api.openweathermap.org/data/2.5/forecast/daily?q=' + LOCATION + '&units=' + units, weatherData, 2);
 
             // set the units button
+            var unitsBtns = document.getElementsByClassName('units-btn');
             var unitBtnsLength = unitsBtns.length;
             for(var i=0; i < unitBtnsLength; i++){
                 if(unitsBtns[i].dataset.units == units) unitsBtns[i].setAttribute('class', 'units-btn active');
@@ -273,10 +273,10 @@
     };
     init();
 
-    // menu interactions
-    var sidebar = document.getElementById('sidebar');
+    //** MENU **//
     // toggle the sidebar menu
     var toggleSidebar = function(){
+        var sidebar = document.getElementById('sidebar');
         if(sidebar.style.display === 'block') sidebar.style.display = 'none';
         else sidebar.style.display = 'block';
     };
@@ -286,21 +286,48 @@
         init(); // get data and re-render
         //toggleSidebar();
     };
+    // change the units to the data attr on the e.target
+    var changeUnits = function(e){
+        chrome.storage.sync.set({'units': e.target.dataset.units});
+        var arrLength = arr.length;
+        for(var i=0; i < arrLength; i++)
+            arr[i].setAttribute('class', 'units-btn');
+        arr[ind].setAttribute('class', 'units-btn active');
+        refresh();
+    };
 
     document.getElementById('menu-icon').onclick = toggleSidebar;
     document.getElementById('refresh').onclick = refresh;
-
-    // change units
+    var unitsBtns = document.getElementsByClassName('units-btn');
     Array.prototype.forEach.call(unitsBtns, function(elem, ind, arr){
-        elem.onclick = function(e){
-            chrome.storage.sync.set({'units': e.target.dataset.units});
-            var arrLength = arr.length;
-            for(var i=0; i < arrLength; i++)
-                arr[i].setAttribute('class', 'units-btn');
-            arr[ind].setAttribute('class', 'units-btn active');
-            refresh();
-        };
+        elem.onclick = changeUnits(e);
     });
 
+    var search = function(loc){
+        ajax('http://api.openweathermap.org/data/2.5/find?&q=' + loc + '&type=like&sort=population',
+            function(data){
+                console.log(data);
+            }
+        );
+    };
+
 })();
+
+/*
+var todayData = [
+    {time: '10:00', img: 'sun.png', temp: '15', precip: 0},
+    {time: '13:00', img: 'sun.png', temp: '16', precip: 0},
+    {time: '16:00', img: 'sun.png', temp: '19', precip: 0},
+    {time: '19:00', img: 'sun.png', temp: '14', precip: 0},
+    {time: '21:00', img: 'sun.png', temp: '11', precip: 0},
+];
+
+var forecastData = [
+    {img: 'sun.png', temp: '14', desc: 'Sunny', weekday: 'Monday', month: 'January 19'},
+    {img: 'sun.png', temp: '18', desc: 'Sunny', weekday: 'Monday', month: 'January 19'},
+    {img: 'sun.png', temp: '12', desc: 'Sunny', weekday: 'Monday', month: 'January 19'},
+    {img: 'sun.png', temp: '9', desc: 'Sunny', weekday: 'Monday', month: 'January 19'},
+    {img: 'sun.png', temp: '13', desc: 'Sunny', weekday: 'Monday', month: 'January 19'}
+];
+*/
 
