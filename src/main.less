@@ -136,7 +136,7 @@ div.menu{
                 margin-top: 20px;
                 margin-bottom: 10px;
             }
-            .location-input{
+            #location-input{
                 float: left;
                 width: 155px;
                 border: 1px solid @lightGray;
@@ -146,8 +146,11 @@ div.menu{
                 padding: 8px;
                 font-size: @font-default*0.777;
                 margin-bottom: 10px;
+                &:focus{
+                    outline: none;
+                }
             }
-            .search{
+            #search{
                 float: left;
                 width: 35px;
                 border: 1px solid @lightGray;
@@ -165,7 +168,7 @@ div.menu{
             }
         }
 
-        .locations{
+        #locations{
             .location{
                 .Clearfix;
                 font-size: @font-default*0.777;

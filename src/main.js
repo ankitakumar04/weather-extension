@@ -97,13 +97,25 @@ var components = (function(){
         };
     };
 
+    var Location = function(attrs){
+        this.attrs = attrs;
+
+        this.render = function(){
+            return createElem('div', {class: 'location'},
+                '<span>' + (this.attrs.name || '') + '</span>' +
+                '<span>' + (this.attrs.temp || '') + '&deg;</span>'
+            );
+        };
+    };
+
 
     return{
         Current: Current,
         Period: Period,
         Today: Today,
         Day: Day,
-        Forecast: Forecast
+        Forecast: Forecast,
+        Location: Location
     };
 
 })();
@@ -144,6 +156,14 @@ var components = (function(){
         return (Date.now() - setAt) > EXPIRY_TIME;
     };
 
+    // converts K to C or F if units is imperial
+    var convertTemp = function(temp, units){
+        temp = temp - 273.15;
+        if(units == 'imperial')
+            temp = temp * (9.0/5) + 32;
+        return Math.round(temp);
+    };
+
     //** DATA **//
     // flow goes from init -> getData -> parseData -> renderData
 
@@ -164,57 +184,62 @@ var components = (function(){
 
     // used to parse the data
     var parseData = function(data){
-        console.log(data);
-        var weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday',
-                        'Thursday', 'Friday', 'Saturday'];
-        var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
-                      'August', 'September', 'October', 'November', 'December'];
+        chrome.storage.sync.get('units', function(result){
 
-        var currentData = {
-            img: 'icons/' + data[0].weather[0].icon.substr(0, 2) + '.png',
-            temp: Math.round(data[0].main.temp),
-            desc: data[0].weather[0].main
-        };
+            var units = result.units || 'metric';
+            console.log(data);
+            var weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday',
+                            'Thursday', 'Friday', 'Saturday'];
+            var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+                          'August', 'September', 'October', 'November', 'December'];
 
-        var todayData = [];
-        var i, date;
-        for(i=0; i < 5; i++){
-            // get time
-            date = new Date(data[1].list[i].dt*1000); // ms
-            var hours = '0' + date.getHours();
-            hours = hours.substr(hours.length - 2); // pad to 2 digits
-            var minutes = '0' + date.getMinutes();
-            minutes = minutes.substr(minutes.length - 2); // pad again
+            var currentData = {
+                img: 'icons/' + data[0].weather[0].icon.substr(0, 2) + '.png',
+                temp: convertTemp(data[0].main.temp, units),
+                desc: data[0].weather[0].main
+            };
 
-            // get precipitation
-            var precip = 0;
-            if(data[1].list[i].rain)
-                precip = +data[1].list[i].rain['3h'].toFixed(2);
-            else if(data[1].list[i].snow)
-                precip = +data[1].list[i].snow['3h'].toFixed(2);
+            var todayData = [];
+            var i, date;
+            for(i=0; i < 5; i++){
+                // get time
+                date = new Date(data[1].list[i].dt*1000); // ms
+                var hours = '0' + date.getHours();
+                hours = hours.substr(hours.length - 2); // pad to 2 digits
+                var minutes = '0' + date.getMinutes();
+                minutes = minutes.substr(minutes.length - 2); // pad again
 
-            // store data in array
-            todayData.push({
-                img: 'icons/' + data[1].list[i].weather[0].icon.substr(0, 2) + '.png',
-                temp: Math.round(data[1].list[i].main.temp),
-                precip: precip,
-                time: hours + ':' + minutes
-            });
-        }
+                // get precipitation
+                var precip = 0;
+                if(data[1].list[i].rain)
+                    precip = +data[1].list[i].rain['3h'].toFixed(2);
+                else if(data[1].list[i].snow)
+                    precip = +data[1].list[i].snow['3h'].toFixed(2);
 
-        var forecastData = [];
-        for(i=0; i < 5; i++){
-            date = new Date(data[2].list[i].dt*1000); // ms
-            forecastData.push({
-                img: 'icons/' + data[2].list[i].weather[0].icon.substr(0, 2) + '.png',
-                temp: Math.round(data[2].list[i].temp.max),
-                desc: data[2].list[i].weather[0].main,
-                weekday: weekdays[date.getDay()],
-                month: months[date.getMonth()] + ' ' + date.getDate()
-            });
-        }
+                // store data in array
+                todayData.push({
+                    img: 'icons/' + data[1].list[i].weather[0].icon.substr(0, 2) + '.png',
+                    temp: convertTemp(data[1].list[i].main.temp, units),
+                    precip: precip,
+                    time: hours + ':' + minutes
+                });
+            }
 
-        renderData(currentData, todayData, forecastData);
+            var forecastData = [];
+            for(i=0; i < 5; i++){
+                date = new Date(data[2].list[i].dt*1000); // ms
+                forecastData.push({
+                    img: 'icons/' + data[2].list[i].weather[0].icon.substr(0, 2) + '.png',
+                    temp: convertTemp(data[2].list[i].temp.max),
+                    desc: data[2].list[i].weather[0].main,
+                    weekday: weekdays[date.getDay()],
+                    month: months[date.getMonth()] + ' ' + date.getDate()
+                });
+            }
+
+            renderData(currentData, todayData, forecastData);
+
+        });
     };
 
     // gets data and renders if arr is full
@@ -256,20 +281,17 @@ var components = (function(){
 
     var init = function(){
         var weatherData = [null, null, null];
-        chrome.storage.sync.get('units', function(result){
-            var units = result.units || 'metric';
-            getData('currentWeatherData', 'http://api.openweathermap.org/data/2.5/weather?q=' + LOCATION + '&units=' + units, weatherData, 0);
-            getData('todayWeatherData', 'http://api.openweathermap.org/data/2.5/forecast?q=' + LOCATION + '&units=' + units, weatherData, 1);
-            getData('forecastWeatherData', 'http://api.openweathermap.org/data/2.5/forecast/daily?q=' + LOCATION + '&units=' + units, weatherData, 2);
+        getData('currentWeatherData', 'http://api.openweathermap.org/data/2.5/weather?q=' + LOCATION, weatherData, 0);
+        getData('todayWeatherData', 'http://api.openweathermap.org/data/2.5/forecast?q=' + LOCATION, weatherData, 1);
+        getData('forecastWeatherData', 'http://api.openweathermap.org/data/2.5/forecast/daily?q=' + LOCATION, weatherData, 2);
 
-            // set the units button
-            var unitsBtns = document.getElementsByClassName('units-btn');
-            var unitBtnsLength = unitsBtns.length;
-            for(var i=0; i < unitBtnsLength; i++){
-                if(unitsBtns[i].dataset.units == units) unitsBtns[i].setAttribute('class', 'units-btn active');
-                else unitsBtns[i].setAttribute('class', 'units-btn');
-            }
-        });
+        // set the units button
+        var unitsBtns = document.getElementsByClassName('units-btn');
+        var unitBtnsLength = unitsBtns.length;
+        for(var i=0; i < unitBtnsLength; i++){
+            if(unitsBtns[i].dataset.units == units) unitsBtns[i].setAttribute('class', 'units-btn active');
+            else unitsBtns[i].setAttribute('class', 'units-btn');
+        }
     };
     init();
 
@@ -286,9 +308,40 @@ var components = (function(){
         init(); // get data and re-render
         //toggleSidebar();
     };
+    // search for locations
+    var search = function(e){
+        var loc = document.getElementById('location-input').value;
+        console.log(loc);
+
+        ajax('http://api.openweathermap.org/data/2.5/find?&q=' + loc + '&type=like&sort=population',
+            'GET',
+            function(r){
+
+                chrome.storage.sync.get('units', function(result){
+                    var units = result.units || 'metric';
+                    var data = JSON.parse(r.response);
+                    console.log(data);
+
+                    var locations = document.getElementById('locations');
+                    locations.innerHTML = ''; // clear any old entries
+                    var loc = new components.Location();
+                    data.list.map(function(elem){
+                        var name = elem.name + ', ' + elem.sys.country;
+                        var temp = convertTemp(elem.main.temp, units);
+                        loc.attrs = {name: name, temp: temp};
+                        locations.appendChild(loc.render());
+                    });
+                });
+            }
+        );
+    };
 
     document.getElementById('menu-icon').onclick = toggleSidebar;
     document.getElementById('refresh').onclick = refresh;
+    document.getElementById('search').onclick = search;
+    document.getElementById('location-input').onkeypress = function(e){
+        if(e.keyCode == 13) search(e);
+    };
     // change the units to the data attr on the e.target
     var unitsBtns = document.getElementsByClassName('units-btn');
     Array.prototype.forEach.call(unitsBtns, function(elem, ind, arr){
@@ -301,14 +354,6 @@ var components = (function(){
             refresh();
         };
     });
-
-    var search = function(loc){
-        ajax('http://api.openweathermap.org/data/2.5/find?&q=' + loc + '&type=like&sort=population',
-            function(data){
-                console.log(data);
-            }
-        );
-    };
 
 })();
 
