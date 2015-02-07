@@ -102,8 +102,18 @@ var components = (function(){
 
         this.render = function(){
             return createElem('div', {class: 'location'},
-                '<span>' + (this.attrs.name || '') + '</span>' +
-                '<span>' + (this.attrs.temp || '') + '&deg;</span>'
+                '<span>' + this.attrs.name  + '</span>' +
+                '<span>' + this.attrs.temp  + '&deg;</span>'
+            );
+        };
+    };
+
+    var LocationSpinner = function(attrs){
+        this.atts = attrs;
+        this.render = function(){
+            return createElem('div',
+                {id: 'location-spinner', class: 'spinner', style: 'display: block;'},
+                '<div></div><div></div><div></div>'
             );
         };
     };
@@ -115,7 +125,8 @@ var components = (function(){
         Today: Today,
         Day: Day,
         Forecast: Forecast,
-        Location: Location
+        Location: Location,
+        LocationSpinner: LocationSpinner
     };
 
 })();
@@ -314,6 +325,10 @@ var components = (function(){
     };
     // search for locations
     var search = function(e){
+        var locations = document.getElementById('locations');
+        locations.innerHTML = '';
+        locations.appendChild(new components.LocationSpinner().render());
+
         var loc = document.getElementById('location-input').value;
         console.log(loc);
 
@@ -326,7 +341,6 @@ var components = (function(){
                     var data = JSON.parse(r.response);
                     console.log(data);
 
-                    var locations = document.getElementById('locations');
                     locations.innerHTML = ''; // clear any old entries
                     var loc = new components.Location();
                     data.list.map(function(elem){
