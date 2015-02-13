@@ -101,11 +101,16 @@ var components = (function(){
         this.attrs = attrs;
 
         this.render = function(){
-            var dataLoc = this.attrs.name.trim().replace(/\s/g, '').toLowerCase();
-            return createElem('div', {class: 'location'},
-                '<span data-loc="' + dataLoc + '">' + this.attrs.name  + '</span>' +
-                '<span>' + this.attrs.temp  + '&deg;</span>'
+            var dataName = this.attrs.name.split(',')[0].trim().replace(/\s/g, '').toLowerCase();
+            var name = createElem('span',
+                    {'data-name': dataName, 'data-id': this.attrs.id},
+                    this.attrs.name
             );
+            var temp = createElem('span', {}, this.attrs.temp + '&deg;');
+            var loc = createElem('div', {class: 'location'});
+            loc.appendChild(name);
+            loc.appendChild(temp);
+            return loc;
         };
     };
 
@@ -300,15 +305,17 @@ var components = (function(){
 
     var init = function(){
         chrome.storage.sync.get('loc', function(data){
-            console.log(data);
-            var LOCATION = data.loc || 'waterloo,ca';
+            data = data.loc && JSON.parse(data.loc);
+            var LOCATION = {
+                id: (data && data.id) || 6176823,
+                name: (data && data.name) || 'waterloo'
+            };
             var weatherData = [null, null, null];
-            getData('currentWeatherData', 'http://api.openweathermap.org/data/2.5/weather?q=' + LOCATION, weatherData, 0);
-            getData('todayWeatherData', 'http://api.openweathermap.org/data/2.5/forecast?q=' + LOCATION, weatherData, 1);
-            getData('forecastWeatherData', 'http://api.openweathermap.org/data/2.5/forecast/daily?q=' + LOCATION, weatherData, 2);
+            getData('currentWeatherData', 'http://api.openweathermap.org/data/2.5/weather?id=' + LOCATION.id, weatherData, 0);
+            getData('todayWeatherData', 'http://api.openweathermap.org/data/2.5/forecast?id=' + LOCATION.id, weatherData, 1);
+            getData('forecastWeatherData', 'http://api.openweathermap.org/data/2.5/forecast/daily?id=' + LOCATION.id, weatherData, 2);
 
-            var menuText = LOCATION.split(',')[0];
-            document.getElementById('location').innerText = menuText.substr(0, 1).toUpperCase() + menuText.substr(1);
+            document.getElementById('location').innerText = LOCATION.name.substr(0, 1).toUpperCase() + LOCATION.name.substr(1);
         });
 
         chrome.storage.sync.get('units', function(result){
@@ -339,9 +346,10 @@ var components = (function(){
     };
     // set the location based on data attribute
     var setLocation = function(e){
-        var loc = e.target.dataset.loc;
+        var name = e.target.dataset.name;
+        var id = e.target.dataset.id;
 
-        chrome.storage.sync.set({loc: loc}, function(data){
+        chrome.storage.sync.set({loc: JSON.stringify({name: name, id:id})}, function(data){
             refresh(); // refresh data and re-render
             toggleSidebar(); // close sidebar
             // remove list of search results
@@ -358,7 +366,6 @@ var components = (function(){
         locations.appendChild(new components.LocationSpinner().render());
 
         var loc = document.getElementById('location-input').value;
-        console.log(loc);
 
         ajax('http://api.openweathermap.org/data/2.5/find?&q=' + loc + '&type=like&sort=population',
             'GET',
@@ -367,14 +374,14 @@ var components = (function(){
                 chrome.storage.sync.get('units', function(result){
                     var units = result.units || 'metric';
                     var data = JSON.parse(r.response);
-                    console.log(data);
 
                     locations.innerHTML = ''; // clear any old entries
                     var loc = new components.Location();
                     data.list.map(function(elem){
-                        var name = elem.name + ', ' + elem.sys.country;
+                        var name = elem.name + ',' + elem.sys.country;
+                        var id = elem.id;
                         var temp = convertTemp(elem.main.temp, units);
-                        loc.attrs = {name: name, temp: temp};
+                        loc.attrs = {name: name, id: id, temp: temp};
                         var locationElem = loc.render();
                         locationElem.onclick = setLocation;
                         locations.appendChild(locationElem);
