@@ -35,7 +35,7 @@ var components = (function(){
             period.appendChild( createElem('span', {class: 'time'}, this.attrs.time) );
             period.appendChild( createElem('img', {src: this.attrs.img, alt: 'icon'}) );
             period.appendChild( createElem('span', {class: 'temp'}, this.attrs.temp + '&deg') );
-            period.appendChild( createElem('span', {class: 'precip'}, this.attrs.precip + 'mm') );
+            period.appendChild( createElem('span', {class: 'precip'}, this.attrs.precip + this.attrs.length_unit) );
 
             return period;
         };
@@ -101,8 +101,9 @@ var components = (function(){
         this.attrs = attrs;
 
         this.render = function(){
+            var dataLoc = this.attrs.name.trim().replace(/\s/g, '').toLowerCase();
             return createElem('div', {class: 'location'},
-                '<span>' + this.attrs.name  + '</span>' +
+                '<span data-loc="' + dataLoc + '">' + this.attrs.name  + '</span>' +
                 '<span>' + this.attrs.temp  + '&deg;</span>'
             );
         };
@@ -175,6 +176,12 @@ var components = (function(){
         return Math.round(temp);
     };
 
+    var convertLength = function(len, units){
+        if(units == 'imperial')
+            len = len*0.039370;
+        return len;
+    };
+
     //** DATA **//
     // flow goes from init -> getData -> parseData -> renderData
 
@@ -223,15 +230,18 @@ var components = (function(){
                 // get precipitation
                 var precip = 0;
                 if(data[1].list[i].rain)
-                    precip = +data[1].list[i].rain['3h'].toFixed(2);
+                    precip = +data[1].list[i].rain['3h'];
                 else if(data[1].list[i].snow)
-                    precip = +data[1].list[i].snow['3h'].toFixed(2);
+                    precip = +data[1].list[i].snow['3h'];
+                precip = convertLength(precip, units).toFixed(2);
+                length_unit = units == 'imperial' ? 'in' : 'mm';
 
                 // store data in array
                 todayData.push({
                     img: 'icons/' + data[1].list[i].weather[0].icon.substr(0, 2) + '.png',
                     temp: convertTemp(data[1].list[i].main.temp, units),
                     precip: precip,
+                    length_unit: length_unit,
                     time: hours + ':' + minutes
                 });
             }
@@ -288,16 +298,20 @@ var components = (function(){
         });
     };
 
-    var LOCATION = 'waterloo,ca';
-
     var init = function(){
-        var weatherData = [null, null, null];
-        getData('currentWeatherData', 'http://api.openweathermap.org/data/2.5/weather?q=' + LOCATION, weatherData, 0);
-        getData('todayWeatherData', 'http://api.openweathermap.org/data/2.5/forecast?q=' + LOCATION, weatherData, 1);
-        getData('forecastWeatherData', 'http://api.openweathermap.org/data/2.5/forecast/daily?q=' + LOCATION, weatherData, 2);
+        chrome.storage.sync.get('loc', function(data){
+            console.log(data);
+            var LOCATION = data.loc || 'waterloo,ca';
+            var weatherData = [null, null, null];
+            getData('currentWeatherData', 'http://api.openweathermap.org/data/2.5/weather?q=' + LOCATION, weatherData, 0);
+            getData('todayWeatherData', 'http://api.openweathermap.org/data/2.5/forecast?q=' + LOCATION, weatherData, 1);
+            getData('forecastWeatherData', 'http://api.openweathermap.org/data/2.5/forecast/daily?q=' + LOCATION, weatherData, 2);
+
+            var menuText = LOCATION.split(',')[0];
+            document.getElementById('location').innerText = menuText.substr(0, 1).toUpperCase() + menuText.substr(1);
+        });
 
         chrome.storage.sync.get('units', function(result){
-
             var units = result.units || 'metric';
             // set the units button
             var unitsBtns = document.getElementsByClassName('units-btn');
@@ -323,6 +337,20 @@ var components = (function(){
         init(); // get data and re-render
         //toggleSidebar();
     };
+    // set the location based on data attribute
+    var setLocation = function(e){
+        var loc = e.target.dataset.loc;
+
+        chrome.storage.sync.set({loc: loc}, function(data){
+            refresh(); // refresh data and re-render
+            toggleSidebar(); // close sidebar
+            // remove list of search results
+            var locations = document.getElementById('locations');
+            locations.innerHTML = '';
+            // clear input text
+            document.getElementById('location-input').value = '';
+        });
+    };
     // search for locations
     var search = function(e){
         var locations = document.getElementById('locations');
@@ -347,7 +375,9 @@ var components = (function(){
                         var name = elem.name + ', ' + elem.sys.country;
                         var temp = convertTemp(elem.main.temp, units);
                         loc.attrs = {name: name, temp: temp};
-                        locations.appendChild(loc.render());
+                        var locationElem = loc.render();
+                        locationElem.onclick = setLocation;
+                        locations.appendChild(locationElem);
                     });
                 });
             }
@@ -364,7 +394,7 @@ var components = (function(){
     var unitsBtns = document.getElementsByClassName('units-btn');
     Array.prototype.forEach.call(unitsBtns, function(elem, ind, arr){
         elem.onclick = function(e){
-            chrome.storage.sync.set({'units': e.target.dataset.units});
+            chrome.storage.sync.set({'units': this.dataset.units});
             var arrLength = arr.length;
             for(var i=0; i < arrLength; i++)
                 arr[i].setAttribute('class', 'units-btn');
