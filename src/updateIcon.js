@@ -81,7 +81,7 @@
 
     var forStartup = function(){
         // schedule alarm and add listener
-        chrome.alarms.create('updateIcon', {periodInMinutes: 5});
+        chrome.alarms.create('updateIcon', {periodInMinutes: 60});
         chrome.alarms.onAlarm.addListener(initUpdate);
         // run getLocation and update the icon
         getLocation(function(LOCATION){
