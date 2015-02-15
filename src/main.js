@@ -137,7 +137,8 @@ var components = (function(){
 
 })();
 
-(function(){
+// functions used by other functions to make things easier
+var helpers = (function(){
 
     // makes an ajax call to url with method and runs appropriate callback
     var ajax = function(url, method, success, error){
@@ -187,7 +188,19 @@ var components = (function(){
         return len;
     };
 
-    //** DATA **//
+    return {
+        ajax: ajax,
+        arrayAllTrue: arrayAllTrue,
+        cacheExpired: cacheExpired,
+        convertTemp: convertTemp,
+        convertLength: convertLength
+    };
+
+})();
+
+// The main functions of the code. Returns init() to init/refresh the data
+// requires components and helpers
+var main = (function(){
     // flow goes from init -> getData -> parseData -> renderData
 
     var renderData = function(currentData, todayData, forecastData){
@@ -218,7 +231,7 @@ var components = (function(){
 
             var currentData = {
                 img: 'icons/' + data[0].weather[0].icon.substr(0, 2) + '.png',
-                temp: convertTemp(data[0].main.temp, units),
+                temp: helpers.convertTemp(data[0].main.temp, units),
                 desc: data[0].weather[0].main
             };
 
@@ -238,13 +251,13 @@ var components = (function(){
                     precip = +data[1].list[i].rain['3h'];
                 else if(data[1].list[i].snow)
                     precip = +data[1].list[i].snow['3h'];
-                precip = convertLength(precip, units).toFixed(2);
+                precip = helpers.convertLength(precip, units).toFixed(2);
                 length_unit = units == 'imperial' ? 'in' : 'mm';
 
                 // store data in array
                 todayData.push({
                     img: 'icons/' + data[1].list[i].weather[0].icon.substr(0, 2) + '.png',
-                    temp: convertTemp(data[1].list[i].main.temp, units),
+                    temp: helpers.convertTemp(data[1].list[i].main.temp, units),
                     precip: precip,
                     length_unit: length_unit,
                     time: hours + ':' + minutes
@@ -256,7 +269,7 @@ var components = (function(){
                 date = new Date(data[2].list[i].dt*1000); // ms
                 forecastData.push({
                     img: 'icons/' + data[2].list[i].weather[0].icon.substr(0, 2) + '.png',
-                    temp: convertTemp(data[2].list[i].temp.max, units),
+                    temp: helpers.convertTemp(data[2].list[i].temp.max, units),
                     desc: data[2].list[i].weather[0].main,
                     weekday: weekdays[date.getDay()],
                     month: months[date.getMonth()] + ' ' + date.getDate()
@@ -271,15 +284,15 @@ var components = (function(){
     // gets data and renders if arr is full
     var getData = function(key, url, arr, ind){
         chrome.storage.local.get(key, function(data){
-            if(data[key] && !cacheExpired( JSON.parse(data[key]).setAt )){
+            if(data[key] && !helpers.cacheExpired( JSON.parse(data[key]).setAt )){
                 console.log('cache');
                 arr[ind] = JSON.parse(data[key]);
-                if(arrayAllTrue(arr))
+                if(helpers.arrayAllTrue(arr))
                     parseData(arr);
             }else{
                 var spinner = document.getElementById('spinner');
                 spinner.style.display = 'block';
-                ajax(url,
+                helpers.ajax(url,
                     'GET',
                     function(r){
                         console.log('ajaxed');
@@ -292,7 +305,7 @@ var components = (function(){
                         toStore[key] = JSON.stringify(data);
                         chrome.storage.local.set(toStore);
 
-                        if(arrayAllTrue(arr)){
+                        if(helpers.arrayAllTrue(arr)){
                             parseData(arr);
                             spinner.style.display = 'none';
                         }
@@ -329,10 +342,16 @@ var components = (function(){
             }
         });
     };
-    init();
+    return {
+        init: init
+    };
 
-    //** MENU **//
-    // toggle the sidebar menu
+})();
+
+// the user interactions
+// requires components, helpers, and main
+var events = (function(){
+
     var toggleSidebar = function(){
         var sidebar = document.getElementById('sidebar');
         if(sidebar.style.display === 'block') sidebar.style.display = 'none';
@@ -341,8 +360,7 @@ var components = (function(){
     // refresh data
     var refresh = function(){
         chrome.storage.local.clear(); // clear cache
-        init(); // get data and re-render
-        //toggleSidebar();
+        main.init(); // re render the data
     };
     // set the location based on data attribute
     var setLocation = function(e){
@@ -352,9 +370,11 @@ var components = (function(){
         chrome.storage.sync.set({loc: JSON.stringify({name: name, id:id})}, function(data){
             refresh(); // refresh data and re-render
             toggleSidebar(); // close sidebar
+
             // remove list of search results
             var locations = document.getElementById('locations');
             locations.innerHTML = '';
+
             // clear input text
             document.getElementById('location-input').value = '';
         });
@@ -367,7 +387,7 @@ var components = (function(){
 
         var loc = document.getElementById('location-input').value;
 
-        ajax('http://api.openweathermap.org/data/2.5/find?&q=' + loc + '&type=like&sort=population',
+        helpers.ajax('http://api.openweathermap.org/data/2.5/find?&q=' + loc + '&type=like&sort=population',
             'GET',
             function(r){
 
@@ -380,10 +400,12 @@ var components = (function(){
                     data.list.map(function(elem){
                         var name = elem.name + ',' + elem.sys.country;
                         var id = elem.id;
-                        var temp = convertTemp(elem.main.temp, units);
+                        var temp = helpers.convertTemp(elem.main.temp, units);
+
                         loc.attrs = {name: name, id: id, temp: temp};
                         var locationElem = loc.render();
                         locationElem.onclick = setLocation;
+
                         locations.appendChild(locationElem);
                     });
                 });
@@ -391,6 +413,7 @@ var components = (function(){
         );
     };
 
+    // Attach event listeners
     document.getElementById('menu-icon').onclick = toggleSidebar;
     document.getElementById('refresh').onclick = refresh;
     document.getElementById('search').onclick = search;
@@ -410,7 +433,16 @@ var components = (function(){
         };
     });
 
+    return {
+        toggleSidebar: toggleSidebar,
+        refresh: refresh,
+        setLocation: setLocation,
+        search: search
+    };
+
 })();
+
+main.init();
 
 /*
 var todayData = [
