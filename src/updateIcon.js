@@ -31,18 +31,28 @@
 
         // update icon itself
         var src;
+        var image = data.weather[0].icon.substr(0, 2) + '.png';
         try{
-            src = 'icons/favicons/' + data.weather[0].icon.substr(0, 2) + '.png';
+            src = {
+                19: 'icons/favicons19/' + image,
+                38: 'icons/favicons38/' + image
+            };
         }
         catch(err){
-            src = 'icons/favicons/01.png'; // default icon if error
+            src = { // default icon if error
+                19: 'icons/favicons19/02.png',
+                38: 'icons/favicons38/02.png'
+            };
         }
         chrome.browserAction.setIcon({path: src});
     };
 
     // renders the default icon on error
     var defaultIcon = function(r){
-        src = 'icons/favicons/01.png'; // default icon if error
+        src = { // default icon if error
+                19: 'icons/favicons19/02.png',
+                38: 'icons/favicons38/02.png'
+            };
         chrome.browserAction.setIcon({path: src});
     };
 
