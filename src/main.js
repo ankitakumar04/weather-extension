@@ -350,7 +350,7 @@ var main = (function(){
 
 // the user interactions
 // requires components, helpers, and main
-var events = (function(){
+var interactions = (function(){
 
     var toggleSidebar = function(){
         var sidebar = document.getElementById('sidebar');
@@ -433,12 +433,7 @@ var events = (function(){
         };
     });
 
-    return {
-        toggleSidebar: toggleSidebar,
-        refresh: refresh,
-        setLocation: setLocation,
-        search: search
-    };
+    return;
 
 })();
 

@@ -6,12 +6,17 @@
     "version": "1.0",
 
     "browser_action": {
-        "default_icon": "icons/01.png",
+        "default_icon": "icons/favicons/01.png",
         "default_popup": "popup.html"
+    },
+    "background": {
+        "scripts": ["src/updateIcon.js"],
+        "persistant": false
     },
 
     "permissions": [
         "http://api.openweathermap.org/data/2.5/*",
-        "storage"
+        "storage",
+        "alarms"
     ]
 }
