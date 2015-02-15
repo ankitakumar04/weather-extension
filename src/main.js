@@ -101,9 +101,9 @@ var components = (function(){
         this.attrs = attrs;
 
         this.render = function(){
-            var dataName = this.attrs.name.split(',')[0].trim().replace(/\s/g, '').toLowerCase();
+            //var dataName = this.attrs.name.split(',')[0].trim().replace(/\s/g, '').toLowerCase();
             var name = createElem('span',
-                    {'data-name': dataName, 'data-id': this.attrs.id},
+                    {'data-id': this.attrs.id},
                     this.attrs.name
             );
             var temp = createElem('span', {}, this.attrs.temp + '&deg;');
@@ -362,21 +362,39 @@ var interactions = (function(){
         chrome.storage.local.clear(); // clear cache
         main.init(); // re render the data
     };
-    // set the location based on data attribute
+    // change the units to the data attr on the button
+    var changeUnits = function(e, btnInd, btnArr){
+        chrome.storage.sync.set({'units': e.target.dataset.units});
+        var arrLength = btnArr.length;
+        for(var i=0; i < arrLength; i++)
+            btnArr[i].setAttribute('class', 'units-btn');
+        btnArr[btnInd].setAttribute('class', 'units-btn active');
+        refresh();
+    };
+    // set the current location based on data id of event target
     var setLocation = function(e){
-        var name = e.target.dataset.name;
         var id = e.target.dataset.id;
 
-        chrome.storage.sync.set({loc: JSON.stringify({name: name, id:id})}, function(data){
-            refresh(); // refresh data and re-render
-            toggleSidebar(); // close sidebar
+        // get dictionary of names
+        chrome.storage.local.get('locNames', function(data){
+            if(!(data && data.locNames)) return; // error of some sort
 
-            // remove list of search results
-            var locations = document.getElementById('locations');
-            locations.innerHTML = '';
+            var name = JSON.parse(data.locNames)[id];
 
-            // clear input text
-            document.getElementById('location-input').value = '';
+            chrome.storage.sync.set({loc: JSON.stringify({name: name, id:id})}, function(data){
+                refresh(); // refresh data and re-render
+                toggleSidebar(); // close sidebar
+
+                // remove list of search results
+                var locations = document.getElementById('locations');
+                locations.innerHTML = '';
+
+                // clear input text
+                document.getElementById('location-input').value = '';
+
+                // remove id, name map from storage
+                chrome.storage.local.remove('locNames');
+            });
         });
     };
     // search for locations
@@ -395,6 +413,10 @@ var interactions = (function(){
                     var units = result.units || 'metric';
                     var data = JSON.parse(r.response);
 
+                    // used as key value to map id to names when id chosen
+                    // basically passes data to setLocation
+                    var locNames = {};
+
                     locations.innerHTML = ''; // clear any old entries
                     var loc = new components.Location();
                     data.list.map(function(elem){
@@ -407,8 +429,16 @@ var interactions = (function(){
                         locationElem.onclick = setLocation;
 
                         locations.appendChild(locationElem);
+
+                        locNames[elem.id] = elem.name;
                     });
+
+                    chrome.storage.local.set({locNames: JSON.stringify(locNames)});
                 });
+
+            },
+            function(r){
+                console.log('error');
             }
         );
     };
@@ -420,16 +450,10 @@ var interactions = (function(){
     document.getElementById('location-input').onkeypress = function(e){
         if(e.keyCode == 13) search(e);
     };
-    // change the units to the data attr on the e.target
     var unitsBtns = document.getElementsByClassName('units-btn');
     Array.prototype.forEach.call(unitsBtns, function(elem, ind, arr){
         elem.onclick = function(e){
-            chrome.storage.sync.set({'units': this.dataset.units});
-            var arrLength = arr.length;
-            for(var i=0; i < arrLength; i++)
-                arr[i].setAttribute('class', 'units-btn');
-            arr[ind].setAttribute('class', 'units-btn active');
-            refresh();
+            changeUnits(e, ind, arr);
         };
     });
 
