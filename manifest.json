@@ -2,7 +2,7 @@
     "manifest_version": 2,
 
     "name": "Something about weather",
-    "description": "A weather app.",
+    "description": "A clean and simple weather app.",
     "version": "0.0.0.1",
 
     "icons": {

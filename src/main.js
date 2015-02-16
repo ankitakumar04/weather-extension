@@ -201,12 +201,15 @@ var helpers = (function(){
 // The main functions of the code. Returns init() to init/refresh the data
 // requires components and helpers
 var main = (function(){
+
     // flow goes from init -> getData -> parseData -> renderData
 
-    var renderData = function(currentData, todayData, forecastData){
-        var current = new components.Current(currentData);
-        var today = new components.Today({today: todayData});
-        var forecast = new components.Forecast({days: forecastData});
+    // renders the data and adds elements to the popup
+    var renderData = function(data){
+        // create elements
+        var current = new components.Current(data.current);
+        var today = new components.Today({today: data.today});
+        var forecast = new components.Forecast({days: data.forecast});
 
         // display data
         var main = document.getElementById('main');
@@ -219,7 +222,7 @@ var main = (function(){
     };
 
     // used to parse the data
-    var parseData = function(data){
+    var parseData = function(data, callback){
         chrome.storage.sync.get('units', function(result){
 
             var units = result.units || 'metric';
@@ -276,24 +279,23 @@ var main = (function(){
                 });
             }
 
-            renderData(currentData, todayData, forecastData);
+            callback({current: currentData, today: todayData, forecast: forecastData});
 
         });
     };
 
-    // gets data and renders if arr is full
-    var getData = function(key, url, arr, ind){
+    // gets data and gives arr to callback if it is full
+    var getData = function(key, url, arr, ind, callback){
         chrome.storage.local.get(key, function(data){
             if(data[key] && !helpers.cacheExpired( JSON.parse(data[key]).setAt )){
                 console.log('cache');
                 arr[ind] = JSON.parse(data[key]);
                 if(helpers.arrayAllTrue(arr))
-                    parseData(arr);
+                    callback(arr);
             }else{
                 var spinner = document.getElementById('spinner');
                 spinner.style.display = 'block';
-                helpers.ajax(url,
-                    'GET',
+                helpers.ajax(url, 'GET',
                     function(r){
                         console.log('ajaxed');
                         var data = JSON.parse(r.response);
@@ -306,7 +308,7 @@ var main = (function(){
                         chrome.storage.local.set(toStore);
 
                         if(helpers.arrayAllTrue(arr)){
-                            parseData(arr);
+                            callback(arr);
                             spinner.style.display = 'none';
                         }
                     },
@@ -316,21 +318,30 @@ var main = (function(){
         });
     };
 
+    // start the process of getting data and rendering
     var init = function(){
         chrome.storage.sync.get('loc', function(data){
+            // get the location
             data = data.loc && JSON.parse(data.loc);
             var LOCATION = {
                 id: (data && data.id) || 6176823,
                 name: (data && data.name) || 'waterloo'
             };
-            var weatherData = [null, null, null];
-            getData('currentWeatherData', 'http://api.openweathermap.org/data/2.5/weather?id=' + LOCATION.id, weatherData, 0);
-            getData('todayWeatherData', 'http://api.openweathermap.org/data/2.5/forecast?id=' + LOCATION.id, weatherData, 1);
-            getData('forecastWeatherData', 'http://api.openweathermap.org/data/2.5/forecast/daily?id=' + LOCATION.id, weatherData, 2);
 
+            // make sure all 3 calls happen with getData before rendering
+            var weatherData = [null, null, null];
+            var parseAndRender = function(arr){
+                parseData(arr, renderData);
+            };
+            getData('currentWeatherData', 'http://api.openweathermap.org/data/2.5/weather?id=' + LOCATION.id, weatherData, 0, parseAndRender);
+            getData('todayWeatherData', 'http://api.openweathermap.org/data/2.5/forecast?id=' + LOCATION.id, weatherData, 1, parseAndRender);
+            getData('forecastWeatherData', 'http://api.openweathermap.org/data/2.5/forecast/daily?id=' + LOCATION.id, weatherData, 2, parseAndRender);
+
+            // update the location text
             document.getElementById('location').innerText = LOCATION.name.substr(0, 1).toUpperCase() + LOCATION.name.substr(1);
         });
 
+        // set the units buttons
         chrome.storage.sync.get('units', function(result){
             var units = result.units || 'metric';
             // set the units button
@@ -342,6 +353,7 @@ var main = (function(){
             }
         });
     };
+
     return {
         init: init
     };
