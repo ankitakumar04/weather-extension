@@ -40,8 +40,8 @@
         }
         catch(err){
             src = { // default icon if error
-                19: 'icons/favicons19/02.png',
-                38: 'icons/favicons38/02.png'
+                19: 'icons/favicons19/01.png',
+                38: 'icons/favicons38/01.png'
             };
         }
         chrome.browserAction.setIcon({path: src});
@@ -50,8 +50,8 @@
     // renders the default icon on error
     var defaultIcon = function(r){
         src = { // default icon if error
-                19: 'icons/favicons19/02.png',
-                38: 'icons/favicons38/02.png'
+                19: 'icons/favicons19/01.png',
+                38: 'icons/favicons38/01.png'
             };
         chrome.browserAction.setIcon({path: src});
     };
@@ -73,7 +73,7 @@
     // initiate the update process
     var initUpdate = function(alarm){
         console.log('updating!');
-        // alarm found
+        // run getLocation and update the icon
         getLocation(function(LOCATION){
             getData(LOCATION, updateIcon, defaultIcon);
         });
@@ -83,13 +83,17 @@
         // schedule alarm and add listener
         chrome.alarms.create('updateIcon', {periodInMinutes: 60});
         chrome.alarms.onAlarm.addListener(initUpdate);
-        // run getLocation and update the icon
-        getLocation(function(LOCATION){
-            getData(LOCATION, updateIcon, defaultIcon);
-        });
+        initUpdate();
     };
 
     chrome.runtime.onInstalled.addListener(forStartup);
     chrome.runtime.onStartup.addListener(forStartup);
+    // used to track changes in location
+    chrome.storage.onChanged.addListener(function(changes, namespace){
+        if(namespace == 'sync' && 'loc' in changes){ // location held in sync
+            console.log('location changed!');
+            initUpdate();
+        }
+    });
 
 })();
