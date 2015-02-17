@@ -2,7 +2,7 @@
 
     // gets the data from the server based on LOCATION
     var getData = function(LOCATION, success, error){
-        var url = 'http://api.openweathermap.org/data/2.5/weather?id=' + LOCATION.id;
+        var url = 'http://api.openweathermap.org/data/2.5/weather?id=' + LOCATION.id + '&APPID=1ef0ce4e8b21c0a827f07386ab22a757';
         var r = new XMLHttpRequest();
         r.open('GET', url, true);
 

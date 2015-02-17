@@ -338,9 +338,9 @@ var main = (function(){
             var parseAndRender = function(arr){
                 parseData(arr, renderData);
             };
-            getData('currentWeatherData', 'http://api.openweathermap.org/data/2.5/weather?id=' + LOCATION.id, weatherData, 0, parseAndRender);
-            getData('todayWeatherData', 'http://api.openweathermap.org/data/2.5/forecast?id=' + LOCATION.id, weatherData, 1, parseAndRender);
-            getData('forecastWeatherData', 'http://api.openweathermap.org/data/2.5/forecast/daily?id=' + LOCATION.id, weatherData, 2, parseAndRender);
+            getData('currentWeatherData', 'http://api.openweathermap.org/data/2.5/weather?id=' + LOCATION.id + '&APPID=1ef0ce4e8b21c0a827f07386ab22a757', weatherData, 0, parseAndRender);
+            getData('todayWeatherData', 'http://api.openweathermap.org/data/2.5/forecast?id=' + LOCATION.id + '&APPID=1ef0ce4e8b21c0a827f07386ab22a757', weatherData, 1, parseAndRender);
+            getData('forecastWeatherData', 'http://api.openweathermap.org/data/2.5/forecast/daily?id=' + LOCATION.id + '&APPID=1ef0ce4e8b21c0a827f07386ab22a757', weatherData, 2, parseAndRender);
 
             // update the location text
             document.getElementById('location').innerText = LOCATION.name.substr(0, 1).toUpperCase() + LOCATION.name.substr(1);
