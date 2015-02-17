@@ -158,8 +158,11 @@ div.menu{
                 border-bottom-right-radius: 8px;
                 border-left: none;
                 background-color: #fff;
-                padding: 8px;
+                padding: 9px 9px 7px 7px;
                 font-size: @font-default*0.777;
+                &:hover{
+                    background-color:  lighten(@lightGray, 11%);
+                }
             }
             .instructions{
                 clear: both;
@@ -201,6 +204,11 @@ div.menu{
             height: 50px;
             font-size: @font-default*0.555;
             text-align: center;
+        }
+
+        #locations-error{
+            text-align: center;
+            font-size: @font-default*0.777;
         }
     }
 }
@@ -302,4 +310,14 @@ div.forecast{
             }
         }
     }
+}
+
+#error-message{
+    display: none;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    padding-right: 20px;
+    font-size: @font-default*0.555;
+    text-align: center;
 }

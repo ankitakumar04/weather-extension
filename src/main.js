@@ -310,9 +310,14 @@ var main = (function(){
                         if(helpers.arrayAllTrue(arr)){
                             callback(arr);
                             spinner.style.display = 'none';
+                            document.getElementById('error-message').style.display = 'none';
                         }
                     },
-                    function(){console.log('error');}
+                    function(){
+                        console.log('error');
+                        spinner.style.display = 'none';
+                        document.getElementById('error-message').style.display = 'block';
+                    }
                 );
             }
         });
@@ -451,6 +456,11 @@ var interactions = (function(){
             },
             function(r){
                 console.log('error');
+                locations.innerHTML = '';
+                var errorMessage = document.createElement('p');
+                errorMessage.setAttribute('id', 'locations-error');
+                errorMessage.innerText = 'Unable to search for locations.';
+                locations.appendChild(errorMessage);
             }
         );
     };

@@ -21,7 +21,9 @@
                 <div class="location-search">
                     <h3>Change location</h3>
                     <input id="location-input" type="text" placeholder="e.g. Waterloo, CA">
-                    <button id="search">O</button>
+                    <button id="search">
+                        <img src="icons/search_glass.svg">
+                    </button>
                     <p class="instructions">Search for a location and select from those shown below. For increased accuracy, include a two character country code</p>
                 </div>
                 <div id="locations" class="locations"></div>
@@ -36,7 +38,10 @@
             <div></div>
         </div>
         <div id="main">
-        <!-- app markup placed here-->
+            <!-- app markup placed here-->
+        </div>
+        <div id="error-message">
+            <p>Unable to update data.</p>
         </div>
         <script src="dist/main.js"></script>
     </body>
