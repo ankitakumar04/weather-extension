@@ -43,20 +43,21 @@
     // renders the default icon on error
     var defaultIcon = function(){
         src = { // default icon if error
-                19: 'icons/favicons19/02.png',
-                38: 'icons/favicons38/02.png'
-            };
+            19: 'icons/favicons19/02.png',
+            38: 'icons/favicons38/02.png'
+        };
         chrome.browserAction.setIcon({path: src});
     };
 
     // get the location from the browser and call callback
     var getLocation = function(callback){
         chrome.storage.sync.get('loc', function(data){
-            // get location data or use waterloo
+            // get location data
             data = data.loc && JSON.parse(data.loc);
+
             var LOCATION = {
-                id: (data && data.id) || 6176823,
-                name: (data && data.name) || 'waterloo'
+                id: (data && data.id) ? data.id : null,
+                name: (data && data.name) ? data.name : null
             };
 
             callback(LOCATION);
@@ -68,13 +69,15 @@
         console.log('updating!');
         // run getLocation and getData
         getLocation(function(LOCATION){
-            getData(LOCATION, function(r){
+            // make sure the location exists
+            if(!(LOCATION && LOCATION.id && LOCATION.name)) return;
 
+            // get data for the location
+            getData(LOCATION, function(r){
                     var data = JSON.parse(r.response);
                     data.setAt = Date.now();
                     // cache for popup and fire location changed event
                     chrome.storage.local.set({currentWeatherData: JSON.stringify(data)});
-
                 },
                 defaultIcon // show default icon if failed
             );
@@ -93,7 +96,7 @@
     // used to track changes in location
     chrome.storage.onChanged.addListener(function(changes, namespace){
         if(namespace == 'local' && 'currentWeatherData' in changes){ // location held in sync
-            console.log('location changed!');
+            console.log('data changed!');
 
             // update based on cache
             if(changes.currentWeatherData.newValue){

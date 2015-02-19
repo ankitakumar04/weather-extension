@@ -328,9 +328,18 @@ var main = (function(){
         chrome.storage.sync.get('loc', function(data){
             // get the location
             data = data.loc && JSON.parse(data.loc);
+
+            // should show the menu and to choose a location if
+            // there is nothing stored. Then return
+            if(!(data && data.id && data.name)){
+                document.getElementById('sidebar').style.display = 'block';
+                document.getElementById('no-location').style.display = 'block';
+                return;
+            }
+
             var LOCATION = {
-                id: (data && data.id) || 6176823,
-                name: (data && data.name) || 'waterloo'
+                id: (data.id),
+                name: (data.name)
             };
 
             // make sure all 3 calls happen with getData before rendering
