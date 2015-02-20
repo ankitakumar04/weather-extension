@@ -219,6 +219,9 @@ var main = (function(){
         main.appendChild(today.render());
         main.appendChild(document.createElement('hr'));
         main.appendChild(forecast.render());
+
+        // hide no location warning
+        document.getElementById('no-location').style.display = 'none';
     };
 
     // used to parse the data
@@ -446,13 +449,15 @@ var interactions = (function(){
                     locations.innerHTML = ''; // clear any old entries
                     var loc = new components.Location();
                     data.list.map(function(elem){
-                        var name = elem.name + ',' + elem.sys.country;
+                        var name = elem.name + ', ' + elem.sys.country;
                         var id = elem.id;
                         var temp = helpers.convertTemp(elem.main.temp, units);
 
                         loc.attrs = {name: name, id: id, temp: temp};
                         var locationElem = loc.render();
-                        locationElem.onclick = setLocation;
+
+                        // click on place name
+                        locationElem.children[0].onclick = setLocation;
 
                         locations.appendChild(locationElem);
 
