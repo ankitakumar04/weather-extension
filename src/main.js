@@ -478,11 +478,22 @@ var interactions = (function(){
             }
         );
     };
+    // prevents propagation of the event
+    var stopPropEvent = function(e){
+        e.stopPropagation();
+    };
+    // close menu (sidebar) if it is open
+    var closeMenu = function(e){
+        var sidebar = document.getElementById('sidebar');
+        if(sidebar.style.display === 'block') sidebar.style.display = 'none';
+    };
 
     // Attach event listeners
     document.getElementById('menu-icon').onclick = toggleSidebar;
     document.getElementById('refresh').onclick = refresh;
     document.getElementById('search').onclick = search;
+    document.getElementById('menu').onclick = stopPropEvent; // stop closing of menu if click it
+    document.getElementById('main').onclick = closeMenu; // close menu if click outside it
     document.getElementById('location-input').onkeypress = function(e){
         if(e.keyCode == 13) search(e);
     };
