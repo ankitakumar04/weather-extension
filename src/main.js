@@ -479,6 +479,9 @@ var interactions = (function(){
         );
     };
     // prevents propagation of the event
+    // NOTE: generally bad practice to stop an event as other things
+    // might rely on it. This is a pretty small application though
+    // without a lot of logic so we'll use on the menu
     var stopPropEvent = function(e){
         e.stopPropagation();
     };
