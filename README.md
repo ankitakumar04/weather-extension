@@ -9,5 +9,5 @@ Features:
 * Choose between metric or imperial units
 * Search over 200 000 cities worldwide
 
-Can be found [here](https://chrome.google.com/webstore/detail/weathery-weather/eknnpofdolaciafcnokdbgfelpmdpceb)
+Can be found [here](https://chrome.google.com/webstore/detail/weathery-weather/eknnpofdolaciafcnokdbgfelpmdpceb).    
 Built using the [OpenWeatherMap API](http://openweathermap.org)
