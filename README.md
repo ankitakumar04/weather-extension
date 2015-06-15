@@ -1,6 +1,6 @@
 # Weathery
 A chrome extension that displays the weather.    
-[Download from the Chrome store here.](https://chrome.google.com/webstore/detail/weathery-weather/eknnpofdolaciafcnokdbgfelpmdpceb).    
+[Download from the Chrome store here.](https://chrome.google.com/webstore/detail/weathery-weather/eknnpofdolaciafcnokdbgfelpmdpceb)    
 
 Features:
 * Icon live updates with current weather
