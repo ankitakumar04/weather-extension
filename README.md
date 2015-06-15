@@ -1,5 +1,6 @@
 # Weathery
-A chrome extension that displays the weather.
+A chrome extension that displays the weather.    
+[Download from the Chrome store here.](https://chrome.google.com/webstore/detail/weathery-weather/eknnpofdolaciafcnokdbgfelpmdpceb).    
 
 Features:
 * Icon live updates with current weather
@@ -9,5 +10,4 @@ Features:
 * Choose between metric or imperial units
 * Search over 200 000 cities worldwide
 
-Can be found [here](https://chrome.google.com/webstore/detail/weathery-weather/eknnpofdolaciafcnokdbgfelpmdpceb).    
 Built using the [OpenWeatherMap API](http://openweathermap.org)
