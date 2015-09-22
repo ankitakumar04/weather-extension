@@ -229,7 +229,6 @@ var main = (function(){
         chrome.storage.sync.get('units', function(result){
 
             var units = result.units || 'metric';
-            console.log(data);
             var weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday',
                             'Thursday', 'Friday', 'Saturday'];
             var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
@@ -254,9 +253,9 @@ var main = (function(){
                 // get precipitation
                 var precip = 0;
                 if(data[1].list[i].rain)
-                    precip = +data[1].list[i].rain['3h'];
+                    precip = +data[1].list[i].rain['3h'] || 0;
                 else if(data[1].list[i].snow)
-                    precip = +data[1].list[i].snow['3h'];
+                    precip = +data[1].list[i].snow['3h'] || 0;
                 precip = helpers.convertLength(precip, units).toFixed(2);
                 length_unit = units == 'imperial' ? 'in' : 'mm';
 
@@ -291,7 +290,6 @@ var main = (function(){
     var getData = function(key, url, arr, ind, callback){
         chrome.storage.local.get(key, function(data){
             if(data[key] && !helpers.cacheExpired( JSON.parse(data[key]).setAt )){
-                console.log('cache');
                 arr[ind] = JSON.parse(data[key]);
                 if(helpers.arrayAllTrue(arr))
                     callback(arr);
@@ -300,7 +298,6 @@ var main = (function(){
                 spinner.style.display = 'block';
                 helpers.ajax(url, 'GET',
                     function(r){
-                        console.log('ajaxed');
                         var data = JSON.parse(r.response);
                         arr[ind] = data;
 
