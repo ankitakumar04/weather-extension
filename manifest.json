@@ -4,7 +4,7 @@
     "name": "Weathery (weather)",
     "short_name": "Weathery",
     "description": "A clean and simple weather app.",
-    "version": "0.1.1",
+    "version": "0.1.2",
 
     "icons": {
         "16": "icons/icon16.png",
