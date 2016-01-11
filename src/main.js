@@ -431,7 +431,9 @@ var interactions = (function(){
 
         var loc = document.getElementById('location-input').value;
 
-        helpers.ajax('http://api.openweathermap.org/data/2.5/find?&q=' + loc + '&type=like&sort=population',
+        helpers.ajax(
+            'http://api.openweathermap.org/data/2.5/find?&q=' + loc +
+            '&type=like&sort=population&APPID=1ef0ce4e8b21c0a827f07386ab22a757',
             'GET',
             function(r){
 
